@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.beacon.dao.BeaconDAO;
 import com.beacon.model.UserProfile;
+import com.beacon.model.UserWelcomeData;
 
 @Controller
 @RequestMapping("/")
@@ -23,8 +24,8 @@ public class BeaconController {
 	}
 	
 	@RequestMapping(value="/getuserprofile", method = RequestMethod.GET)
-	public @ResponseBody UserProfile getUserProfile(ModelMap model) {
-      return beaconDAO.getUserProfile();
+	public @ResponseBody UserWelcomeData getUserProfile(ModelMap model) {
+      return beaconDAO.getUserData();
 	}
 	
 }
