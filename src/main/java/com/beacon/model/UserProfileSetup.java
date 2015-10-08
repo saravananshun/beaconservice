@@ -1,23 +1,14 @@
 package com.beacon.model;
 
-import org.springframework.data.annotation.Id;
+import org.springframework.web.multipart.MultipartFile;
 
-public class UserProfile {
-	@Id
-	private String ID;
+public class UserProfileSetup {
 	private String imeiNumber;
 	private String accountNumber;
 	private String firstName;
 	private String lastName;
-	private String bankCode;
-	private byte[] imageBytes;
+	private MultipartFile multiPart;
 	
-	public byte[] getImageBytes() {
-		return imageBytes;
-	}
-	public void setImageBytes(byte[] imageBytes) {
-		this.imageBytes = imageBytes;
-	}
 	public String getImeiNumber() {
 		return imeiNumber;
 	}
@@ -42,16 +33,13 @@ public class UserProfile {
 	public void setLastName(String lastName) {
 		this.lastName = lastName;
 	}
-	public String getBankCode() {
-		return bankCode;
+	public MultipartFile getMultiPart() {
+		return multiPart;
 	}
-	public void setBankCode(String bankCode) {
-		this.bankCode = bankCode;
-	}
-	
-	@Override
-	public String toString() {
-		return "ID : " + ID + "-" + "Account Number : " + accountNumber;
+	public void setMultiPart(MultipartFile multiPart) {
+		this.multiPart = multiPart;
 	}
 	
+	
+
 }
