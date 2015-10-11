@@ -118,6 +118,11 @@ public class BeaconDAO {
 					CustomerServiceQueue.class, CUSTOMER_SERVICE_QUEUE);
 			
 			for(CustomerServiceQueue customer : queue){
+				UserProfile userProfile = config.mongoTemplate().findOne(
+						new Query(Criteria.where("accountNumber").is(customer.getAccountNumber())),
+						UserProfile.class, USER_PROFILE_COLLECTION);
+				customer.setFirstName(userProfile.getFirstName());
+				customer.setLastName(userProfile.getLastName());
 				customer.setImageBytes(readUserProfileImage(customer.getAccountNumber()));
 			}
 

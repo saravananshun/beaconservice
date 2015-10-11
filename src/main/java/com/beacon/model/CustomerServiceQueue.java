@@ -4,6 +4,8 @@ public class CustomerServiceQueue {
 	private String tokenNumber;
 	private String accountNumber;
 	private String status;
+	private String firstName;
+	private String lastName;
 	
 	private byte[] imageBytes;
 	
@@ -31,6 +33,19 @@ public class CustomerServiceQueue {
 	}
 	public void setStatus(String status) {
 		this.status = status;
+	}
+	
+	public String getFirstName() {
+		return firstName;
+	}
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+	public String getLastName() {
+		return lastName;
+	}
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
 	}
 	
 	
