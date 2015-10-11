@@ -5,6 +5,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -14,6 +16,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 
 import com.beacon.model.BankService;
+import com.beacon.model.CustomerServiceQueue;
 import com.beacon.model.UserProfile;
 import com.beacon.model.UserProfileSetup;
 import com.beacon.model.UserWelcomeData;
@@ -26,6 +29,7 @@ import com.mongodb.gridfs.GridFSInputFile;
 public class BeaconDAO {
 	private static final String USER_PROFILE_COLLECTION = "userprofile";
 	private static final String BANKING_SERVICE_COLLECTION = "bankingservice";
+	private static final String CUSTOMER_SERVICE_QUEUE = "customerservicequeue";
 
 	@Autowired
 	private SpringMongoConfig config;
@@ -44,32 +48,8 @@ public class BeaconDAO {
 					new Query(Criteria.where("imeiNumber").is("IMEI000011")),
 					UserProfile.class, USER_PROFILE_COLLECTION);
 			System.out.println("User Profile " + userProfile);
-				
-			
-			GridFS fileStore = new GridFS(config.mongoTemplate().getDb(), "filestore");
-		    GridFSDBFile gridFile = fileStore.findOne(userProfile.getAccountNumber() + "-image");
-		 
-		    InputStream in = gridFile.getInputStream();
-		         
-		    ByteArrayOutputStream out = new ByteArrayOutputStream();
-		    int data = in.read();
-		    while (data >= 0) {
-		      out.write((char) data);
-		      data = in.read();
-		    }
-		    out.flush();
-			
-			// convert byte array back to BufferedImage
-			InputStream imageByteIn = new ByteArrayInputStream(
-					out.toByteArray());
-			BufferedImage bImageFromConvert = ImageIO.read(imageByteIn);
 
-			ImageIO.write(bImageFromConvert, "jpg", new File(
-					"C:/Saro/new-photo.jpg"));
-			out.close();
-			in.close();
-			imageByteIn.close();
-
+			userProfile.setImageBytes(readUserProfileImage(userProfile.getAccountNumber()));
 			getBankingService();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -90,6 +70,24 @@ public class BeaconDAO {
 		return bankService;
 	}
 
+	private byte[] readUserProfileImage(String accountNumber) throws Exception {
+		GridFS fileStore = new GridFS(config.mongoTemplate().getDb(),
+				"filestore");
+		GridFSDBFile gridFile = fileStore.findOne(accountNumber + "-image");
+
+		InputStream in = gridFile.getInputStream();
+
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		int data = in.read();
+		while (data >= 0) {
+			out.write((char) data);
+			data = in.read();
+		}
+		out.flush();
+		out.close();
+		return out.toByteArray();
+	}
+
 	public void saveUserProfile(UserProfileSetup setup) throws Exception {
 		String newFileName = setup.getAccountNumber() + "-image";
 		UserProfile userProfile = new UserProfile();
@@ -97,29 +95,35 @@ public class BeaconDAO {
 		userProfile.setBankCode("B1");
 		userProfile.setFirstName(setup.getFirstName());
 		userProfile.setLastName(setup.getLastName());
-		userProfile.setImeiNumber(setup.getImeiNumber());		
+		userProfile.setImeiNumber(setup.getImeiNumber());
 
 		config.mongoTemplate().insert(userProfile, USER_PROFILE_COLLECTION);
-		
-		// Now let's store the binary file data using filestore GridFS 
-	    GridFS fileStore = new GridFS(config.mongoTemplate().getDb(), "filestore");
-	    GridFSInputFile inputFile = fileStore.createFile(setup.getMultiPart().getInputStream());
-	    inputFile.setId(setup.getAccountNumber());
-	    inputFile.setFilename(newFileName);
-	    inputFile.save();
-		
-		
+
+		// Now let's store the binary file data using filestore GridFS
+		GridFS fileStore = new GridFS(config.mongoTemplate().getDb(),
+				"filestore");
+		GridFSInputFile inputFile = fileStore.createFile(setup.getMultiPart()
+				.getInputStream());
+		inputFile.setId(setup.getAccountNumber());
+		inputFile.setFilename(newFileName);
+		inputFile.save();
+
 	}
 
-	/*
-	 * private byte[] getUserProfileImage()throws Exception{ DB db =
-	 * config.mongoTemplate().getDb(); GridFS gfsPhoto = new GridFS(db,
-	 * "photo"); GridFSDBFile imageForOutput = gfsPhoto.findOne("my-image");
-	 * InputStream inputStream = imageForOutput.getInputStream(); BufferedImage
-	 * originalImage = ImageIO.read(inputStream); ByteArrayOutputStream baos =
-	 * new ByteArrayOutputStream(); ImageIO.write( originalImage, "jpg", baos );
-	 * baos.flush(); byte[] imageInByte = baos.toByteArray(); baos.close();
-	 * return imageInByte; }
-	 */
+	public List<CustomerServiceQueue> findNewCustomersToServe() {
+		List<CustomerServiceQueue> queue = new ArrayList<CustomerServiceQueue>();
+		try {
+			queue = config.mongoTemplate().find(
+					new Query(Criteria.where("status").is("A")),
+					CustomerServiceQueue.class, CUSTOMER_SERVICE_QUEUE);
+			
+			for(CustomerServiceQueue customer : queue){
+				customer.setImageBytes(readUserProfileImage(customer.getAccountNumber()));
+			}
 
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return queue;
+	}
 }

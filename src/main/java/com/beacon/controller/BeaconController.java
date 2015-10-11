@@ -1,5 +1,7 @@
 package com.beacon.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.beacon.dao.BeaconDAO;
+import com.beacon.model.CustomerServiceQueue;
 import com.beacon.model.UserProfileSetup;
 import com.beacon.model.UserWelcomeData;
 
@@ -49,6 +52,11 @@ public class BeaconController {
 			return "Submitted Failed.... ";
 		}
 		return "Submitted Succesfully.... ";
+	}
+	
+	@RequestMapping(value = "/checkforcustomers", method = RequestMethod.GET)
+	public @ResponseBody List<CustomerServiceQueue> checkForNewCustomers(ModelMap model) {
+		return beaconDAO.findNewCustomersToServe();
 	}
 
 }
