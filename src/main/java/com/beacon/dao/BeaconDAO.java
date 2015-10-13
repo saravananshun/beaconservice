@@ -10,6 +10,7 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import com.beacon.model.Token;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -38,7 +39,12 @@ public class BeaconDAO {
 		UserWelcomeData userData = new UserWelcomeData();
 		userData.setUserProfile(getUserProfile());
 		userData.setBankService(getBankingService());
+		userData.setToken(getUserToken());
 		return userData;
+	}
+
+	private Token getUserToken() {
+		return new Token("1234", "100");
 	}
 
 	private UserProfile getUserProfile() {
