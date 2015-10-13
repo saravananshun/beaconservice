@@ -59,4 +59,9 @@ public class BeaconController {
 		return beaconDAO.findNewCustomersToServe();
 	}
 
+	@RequestMapping(value = "/getUserToken", method = RequestMethod.GET)
+	public @ResponseBody Integer getUserToken(ModelMap model) {
+		return beaconDAO.getUserToken();
+	}
+
 }
