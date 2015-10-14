@@ -1,33 +1,31 @@
 package com.beacon.dao;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.imageio.ImageIO;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.stereotype.Component;
-
 import com.beacon.model.BankService;
 import com.beacon.model.CustomerServiceQueue;
 import com.beacon.model.UserProfile;
 import com.beacon.model.UserProfileSetup;
+import com.beacon.model.UserToken;
 import com.beacon.model.UserWelcomeData;
 import com.beacon.springconfig.SpringMongoConfig;
 import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSInputFile;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.stereotype.Component;
+
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class BeaconDAO {
 	private static final String USER_PROFILE_COLLECTION = "userprofile";
+	private static final String USER_TOKEN_COLLECTION = "usertoken";
 	private static final String BANKING_SERVICE_COLLECTION = "bankingservice";
 	private static final String CUSTOMER_SERVICE_QUEUE = "customerservicequeue";
 
@@ -41,6 +39,28 @@ public class BeaconDAO {
 		return userData;
 	}
 
+	public boolean insertUserToken(Integer currentToken){
+		boolean tokenInserted = false;
+		try {
+			tokenInserted = config.mongoTemplate().updateFirst(new Query(Criteria.where("id").is(100)),
+					Update.update("token",currentToken), UserToken.class).wasAcknowledged();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return tokenInserted;
+	}
+	public Integer getUserToken() {
+		UserToken userToken = null;
+		try {
+			userToken = config.mongoTemplate().findOne(
+					new Query(Criteria.where("id").is(100)),
+					UserToken.class, USER_TOKEN_COLLECTION);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return userToken.getToken();
+	}
+
 	private UserProfile getUserProfile() {
 		UserProfile userProfile = null;
 		try {
@@ -48,8 +68,13 @@ public class BeaconDAO {
 					new Query(Criteria.where("imeiNumber").is("IMEI000011")),
 					UserProfile.class, USER_PROFILE_COLLECTION);
 			System.out.println("User Profile " + userProfile);
-
 			userProfile.setImageBytes(readUserProfileImage(userProfile.getAccountNumber()));
+			Integer lastToken = getUserToken();
+			if(lastToken != null) {
+				Integer currentToken = lastToken + 1;
+				userProfile.setToken(currentToken);
+				insertUserToken(currentToken);
+			}
 			getBankingService();
 		} catch (Exception e) {
 			e.printStackTrace();

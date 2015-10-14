@@ -3,6 +3,7 @@ package com.beacon.model;
 public class UserWelcomeData {
 	private UserProfile userProfile;
 	private BankService bankService;
+
 	public UserProfile getUserProfile() {
 		return userProfile;
 	}

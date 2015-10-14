@@ -7,6 +7,7 @@ public class UserProfile {
 	private String ID;
 	private String imeiNumber;
 	private String accountNumber;
+	private Integer token;
 	private String firstName;
 	private String lastName;
 	private String bankCode;
@@ -48,7 +49,16 @@ public class UserProfile {
 	public void setBankCode(String bankCode) {
 		this.bankCode = bankCode;
 	}
-	
+
+
+	public Integer getToken() {
+		return token;
+	}
+
+	public void setToken(Integer token) {
+		this.token = token;
+	}
+
 	@Override
 	public String toString() {
 		return "ID : " + ID + "-" + "Account Number : " + accountNumber;
