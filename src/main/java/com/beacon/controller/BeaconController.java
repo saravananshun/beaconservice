@@ -64,4 +64,11 @@ public class BeaconController {
 		return beaconDAO.getUserToken();
 	}
 
+	@RequestMapping(value = "/insertUserToken", method = RequestMethod.GET)
+	public @ResponseBody boolean insertUserToken(ModelMap model) {
+		return beaconDAO.insertUserToken(500);
+	}
+
+
+
 }

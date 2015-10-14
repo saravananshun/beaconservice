@@ -11,8 +11,10 @@ import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSInputFile;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
@@ -37,25 +39,26 @@ public class BeaconDAO {
 		return userData;
 	}
 
-	public void insertUserToken(Integer lastInsertedToken){
-		UserToken userToken = new UserToken();
-		userToken.setToken(lastInsertedToken+1);
+	public boolean insertUserToken(Integer currentToken){
+		boolean tokenInserted = false;
 		try {
-			config.mongoTemplate().insert(userToken, USER_TOKEN_COLLECTION);
+			tokenInserted = config.mongoTemplate().updateFirst(new Query(Criteria.where("id").is(100)),
+					Update.update("token",currentToken), UserToken.class).wasAcknowledged();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return tokenInserted;
 	}
 	public Integer getUserToken() {
-		Integer userToken = null;
+		UserToken userToken = null;
 		try {
-			List<UserToken> userTokens = config.mongoTemplate().findAll(UserToken.class);
-			if(userTokens != null && !userTokens.isEmpty())
-				userToken = userTokens.get(userTokens.size()-1).getToken();
+			userToken = config.mongoTemplate().findOne(
+					new Query(Criteria.where("id").is(100)),
+					UserToken.class, USER_TOKEN_COLLECTION);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return userToken+1;
+		return userToken.getToken();
 	}
 
 	private UserProfile getUserProfile() {
@@ -66,9 +69,12 @@ public class BeaconDAO {
 					UserProfile.class, USER_PROFILE_COLLECTION);
 			System.out.println("User Profile " + userProfile);
 			userProfile.setImageBytes(readUserProfileImage(userProfile.getAccountNumber()));
-			Integer currentUserToken = getUserToken();
-			userProfile.setToken(currentUserToken);
-			insertUserToken(currentUserToken);
+			Integer lastToken = getUserToken();
+			if(lastToken != null) {
+				Integer currentToken = lastToken + 1;
+				userProfile.setToken(currentToken);
+				insertUserToken(currentToken);
+			}
 			getBankingService();
 		} catch (Exception e) {
 			e.printStackTrace();

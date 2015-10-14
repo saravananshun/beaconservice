@@ -32,11 +32,11 @@ public class SpringMongoConfig {
 		
 		
 	    MongoCredential credential = MongoCredential.createCredential(mongoUser, databaseName, mongoPass.toCharArray());
-	    ServerAddress serverAddress = new ServerAddress(mongoHost, mongoPort);
-	    MongoClient mongoClient = new MongoClient(serverAddress,Arrays.asList(credential),
+	    ServerAddress serverAddress = new ServerAddress(mongoHostLocal, mongoPortLocal);
+	    /*MongoClient mongoClient = new MongoClient(serverAddress,Arrays.asList(credential),
+	    		MongoClientOptions.builder().serverSelectionTimeout(1000).build());*/
+	   MongoClient mongoClient = new MongoClient(serverAddress,
 	    		MongoClientOptions.builder().serverSelectionTimeout(1000).build());
-	   /* MongoClient mongoClient = new MongoClient(serverAddress,
-	    		MongoClientOptions.builder().serverSelectionTimeout(1000).build()); */
 	    SimpleMongoDbFactory simpleMongoDbFactory = new SimpleMongoDbFactory(
 	            mongoClient, databaseName);
 	    return simpleMongoDbFactory;
