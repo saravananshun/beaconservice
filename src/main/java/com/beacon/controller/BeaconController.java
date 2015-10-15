@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -31,8 +32,9 @@ public class BeaconController {
 	}
 
 	@RequestMapping(value = "/getuserprofile", method = RequestMethod.GET)
-	public @ResponseBody UserWelcomeData getUserProfile(ModelMap model) {
-		return beaconDAO.getUserData();
+	public @ResponseBody UserWelcomeData getUserProfile(@RequestParam("accountNumber") String accountNumber,
+				ModelMap model) {
+		return beaconDAO.getUserData(accountNumber);
 	}
 
 	@RequestMapping(value = "/setuserprofile", method = RequestMethod.GET)
@@ -57,6 +59,12 @@ public class BeaconController {
 	@RequestMapping(value = "/checkforcustomers", method = RequestMethod.GET)
 	public @ResponseBody List<CustomerServiceQueue> checkForNewCustomers(ModelMap model) {
 		return beaconDAO.findNewCustomersToServe();
+	}
+	
+	@RequestMapping(value = "/swftest", method = RequestMethod.GET)
+	public ModelAndView swfTest(ModelMap model) {
+		ModelAndView modelAndView = new ModelAndView("swftest");
+		return modelAndView;
 	}
 
 }

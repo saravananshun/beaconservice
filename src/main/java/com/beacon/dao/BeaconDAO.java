@@ -10,15 +10,19 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import org.apache.http.client.UserTokenHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 import com.beacon.model.BankService;
 import com.beacon.model.CustomerServiceQueue;
 import com.beacon.model.UserProfile;
 import com.beacon.model.UserProfileSetup;
+import com.beacon.model.UserToken;
 import com.beacon.model.UserWelcomeData;
 import com.beacon.springconfig.SpringMongoConfig;
 import com.mongodb.gridfs.GridFS;
@@ -30,27 +34,29 @@ public class BeaconDAO {
 	private static final String USER_PROFILE_COLLECTION = "userprofile";
 	private static final String BANKING_SERVICE_COLLECTION = "bankingservice";
 	private static final String CUSTOMER_SERVICE_QUEUE = "customerservicequeue";
+	private static final String USER_TOKEN_COLLECTION = "usertoken";
 
 	@Autowired
 	private SpringMongoConfig config;
 
-	public UserWelcomeData getUserData() {
+	public UserWelcomeData getUserData(String accountNumber) {
 		UserWelcomeData userData = new UserWelcomeData();
-		userData.setUserProfile(getUserProfile());
+		userData.setUserProfile(getUserProfile(accountNumber));
 		userData.setBankService(getBankingService());
 		return userData;
 	}
 
-	private UserProfile getUserProfile() {
+	private UserProfile getUserProfile(String accountNumber) {
 		UserProfile userProfile = null;
 		try {
 			userProfile = config.mongoTemplate().findOne(
-					new Query(Criteria.where("imeiNumber").is("IMEI000011")),
+					new Query(Criteria.where("accountNumber").is(accountNumber)),
 					UserProfile.class, USER_PROFILE_COLLECTION);
 			System.out.println("User Profile " + userProfile);
 
 			userProfile.setImageBytes(readUserProfileImage(userProfile.getAccountNumber()));
-			getBankingService();
+			userProfile.setTokenNumber("REQ-" + generateUserToken().getTokenNumber());
+			insertNewCustomersToServe(userProfile);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -130,5 +136,37 @@ public class BeaconDAO {
 			e.printStackTrace();
 		}
 		return queue;
+	}
+	
+	public void insertNewCustomersToServe(UserProfile userProfile) throws Exception {
+		CustomerServiceQueue service = new CustomerServiceQueue();
+		service.setAccountNumber(userProfile.getAccountNumber());
+		service.setFirstName(userProfile.getFirstName());
+		service.setImageBytes(userProfile.getImageBytes());
+		service.setLastName(userProfile.getLastName());
+		service.setStatus("A");
+		service.setTokenNumber(userProfile.getTokenNumber());
+		
+		config.mongoTemplate().insert(service, CUSTOMER_SERVICE_QUEUE);
+		
+	}
+	
+	private UserToken generateUserToken()throws Exception{
+		UserToken userToken = new UserToken();
+	
+		try{
+			Query query = new Query();
+			query.addCriteria(Criteria.where("tokenId").is(100));
+			
+			Update update = new Update();
+			update.set("tokenNumber", 101);
+			
+			userToken = config.mongoTemplate().findAndModify(
+					query, update, 
+					new FindAndModifyOptions().returnNew(true), UserToken.class, USER_TOKEN_COLLECTION);
+		}catch(Exception e){
+				e.printStackTrace();
+			}
+		return userToken;
 	}
 }
