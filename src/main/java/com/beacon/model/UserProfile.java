@@ -11,7 +11,14 @@ public class UserProfile {
 	private String lastName;
 	private String bankCode;
 	private byte[] imageBytes;
+	private String tokenNumber;
 	
+	public String getTokenNumber() {
+		return tokenNumber;
+	}
+	public void setTokenNumber(String tokenNumber) {
+		this.tokenNumber = tokenNumber;
+	}
 	public byte[] getImageBytes() {
 		return imageBytes;
 	}
