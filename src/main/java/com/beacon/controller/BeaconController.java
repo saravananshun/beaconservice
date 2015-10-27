@@ -5,8 +5,6 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -16,6 +14,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.beacon.dao.BeaconDAO;
 import com.beacon.model.CustomerServiceQueue;
+import com.beacon.model.StallSetup;
 import com.beacon.model.UserProfileSetup;
 import com.beacon.model.UserWelcomeData;
 
@@ -41,6 +40,14 @@ public class BeaconController {
 	public ModelAndView setupUserProfile(ModelMap model) {
 		ModelAndView modelAndView = new ModelAndView("userprofile", "userProfileSetup",
 				new UserProfileSetup());
+		modelAndView.addObject("userProfileList", beaconDAO.getAllUsers());
+		return modelAndView;
+	}
+	
+	@RequestMapping(value = "/setupstall", method = RequestMethod.GET)
+	public ModelAndView setupStall(ModelMap model) {
+		ModelAndView modelAndView = new ModelAndView("stallsetup", "stallSetup",
+				new StallSetup());
 		return modelAndView;
 	}
 
@@ -49,6 +56,18 @@ public class BeaconController {
 			@ModelAttribute("userProfileSetup") UserProfileSetup setupData) {
 		try {
 			beaconDAO.saveUserProfile(setupData);
+		} catch (Exception e) {			
+			e.printStackTrace();
+			return "Submitted Failed.... ";
+		}
+		return "Submitted Succesfully.... ";
+	}
+	
+	@RequestMapping(value = "/submitstallsetup", method = RequestMethod.POST)
+	public @ResponseBody String submitStall(
+			@ModelAttribute("stallSetup") StallSetup setupData) {
+		try {
+			beaconDAO.saveStallDetails(setupData);
 		} catch (Exception e) {			
 			e.printStackTrace();
 			return "Submitted Failed.... ";

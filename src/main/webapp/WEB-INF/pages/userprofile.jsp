@@ -1,4 +1,5 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <html>
 
 
@@ -24,7 +25,7 @@
 <body>
 	<div class="container bs-example">
 		<div class="row">
-		  <h3>User Profile Setup</h3>
+			<h3>User Profile Setup</h3>
 		</div>
 		<form:form method="POST" action="submituserprofile"
 			commandName="userProfileSetup" enctype="multipart/form-data">
@@ -69,6 +70,28 @@
 				</div>
 			</div>
 		</form:form>
+		
+		<c:if test="${not empty userProfileList}">
+			<table class="table">
+				<thead>
+					<tr>
+						<th>First Name</th>
+						<th>Last Name</th>
+						<th>Account Number</th>
+						<th>Image</th>
+					</tr>
+				</thead>
+				<tbody>
+				   <c:forEach var="userProfile" items="${userProfileList}">
+				   	<tr>
+						<td>${userProfile.firstName}</td>
+						<td>${userProfile.lastName}</td>
+						<td>${userProfile.accountNumber}</td>						
+					</tr>
+				   </c:forEach>
+				</tbody>
+			</table>
+		</c:if>
 	</div>
 </body>
 </html>
