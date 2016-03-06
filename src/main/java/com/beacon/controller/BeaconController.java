@@ -13,8 +13,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.beacon.dao.BeaconDAO;
+import com.beacon.model.Banker;
+import com.beacon.model.BankerSetup;
 import com.beacon.model.CustomerServiceQueue;
-import com.beacon.model.StallSetup;
 import com.beacon.model.UserProfileSetup;
 import com.beacon.model.UserWelcomeData;
 
@@ -44,12 +45,12 @@ public class BeaconController {
 		return modelAndView;
 	}
 	
-	@RequestMapping(value = "/setupstall", method = RequestMethod.GET)
+	/*@RequestMapping(value = "/setupstall", method = RequestMethod.GET)
 	public ModelAndView setupStall(ModelMap model) {
 		ModelAndView modelAndView = new ModelAndView("stallsetup", "stallSetup",
 				new StallSetup());
 		return modelAndView;
-	}
+	}*/
 
 	@RequestMapping(value = "/submituserprofile", method = RequestMethod.POST)
 	public @ResponseBody String submitUserProfile(
@@ -62,7 +63,7 @@ public class BeaconController {
 		}
 		return "Submitted Succesfully.... ";
 	}
-	
+	/*
 	@RequestMapping(value = "/submitstallsetup", method = RequestMethod.POST)
 	public @ResponseBody String submitStall(
 			@ModelAttribute("stallSetup") StallSetup setupData) {
@@ -73,17 +74,36 @@ public class BeaconController {
 			return "Submitted Failed.... ";
 		}
 		return "Submitted Succesfully.... ";
-	}
+	}*/
 	
 	@RequestMapping(value = "/checkforcustomers", method = RequestMethod.GET)
 	public @ResponseBody List<CustomerServiceQueue> checkForNewCustomers(ModelMap model) {
 		return beaconDAO.findNewCustomersToServe();
 	}
 	
-	@RequestMapping(value = "/swftest", method = RequestMethod.GET)
-	public ModelAndView swfTest(ModelMap model) {
-		ModelAndView modelAndView = new ModelAndView("swftest");
+	@RequestMapping(value = "/setupbanker", method = RequestMethod.GET)
+	public ModelAndView setUpBankerService(ModelMap model) {
+		ModelAndView modelAndView = new ModelAndView("bankersetup", "bankerSetup",
+				new BankerSetup());
 		return modelAndView;
+	}
+	
+	@RequestMapping(value = "/submitbankersetup", method = RequestMethod.POST)
+	public @ResponseBody String submitBankerSetup(
+			@ModelAttribute("bankerSetup") BankerSetup setupData) {
+		try {
+			beaconDAO.saveBankerSetup(setupData);
+		} catch (Exception e) {			
+			e.printStackTrace();
+			return "Submitted Failed.... ";
+		}
+		return "Submitted Succesfully.... ";
+	}
+	
+	@RequestMapping(value = "/getbanker", method = RequestMethod.GET)
+	public @ResponseBody Banker getBanker(@RequestParam("serviceName") String serviceName,
+				ModelMap model) {
+		return beaconDAO.getBankerData(serviceName);
 	}
 
 }

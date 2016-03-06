@@ -13,9 +13,9 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 import com.beacon.model.BankService;
+import com.beacon.model.Banker;
+import com.beacon.model.BankerSetup;
 import com.beacon.model.CustomerServiceQueue;
-import com.beacon.model.Stall;
-import com.beacon.model.StallSetup;
 import com.beacon.model.UserProfile;
 import com.beacon.model.UserProfileSetup;
 import com.beacon.model.UserToken;
@@ -31,7 +31,7 @@ public class BeaconDAO {
 	private static final String BANKING_SERVICE_COLLECTION = "bankingservice";
 	private static final String CUSTOMER_SERVICE_QUEUE = "customerservicequeue";
 	private static final String USER_TOKEN_COLLECTION = "usertoken";
-	private static final String STALL_COLLECTION = "stall";
+	private static final String BANKERSETUP_COLLECTION = "bankersetup";
 
 	@Autowired
 	private SpringMongoConfig config;
@@ -182,40 +182,47 @@ public class BeaconDAO {
 		return userToken;
 	}
 	
-	public void saveStallDetails(StallSetup setup) throws Exception {
-		String newFileName = setup.getStallOwner() + "-image";	
+	public void saveBankerSetup(BankerSetup setup) throws Exception {
+		String newFileName = setup.getBranchCode() + "-" + setup.getServiceName() + "-image";
+		Banker banker = new Banker();
+		banker.setBranchCode(setup.getBranchCode());
+		banker.setServiceName(setup.getServiceName());
+		banker.setBay(setup.getBay());
+		banker.setFirstName(setup.getFirstName());
+		banker.setLastName(setup.getLastName());
+		
+		config.mongoTemplate().insert(banker, BANKERSETUP_COLLECTION);
 
 		// Now let's store the binary file data using filestore GridFS
 		GridFS fileStore = new GridFS(config.mongoTemplate().getDb(),
 				"filestore");
 		GridFSInputFile inputFile = fileStore.createFile(setup.getMultiPart()
 				.getInputStream());
-		inputFile.setId(setup.getStallOwner());
+		inputFile.setId(newFileName);
 		inputFile.setFilename(newFileName);
 		inputFile.save();
-		
-		setup.setMultiPart(null);
-		config.mongoTemplate().insert(setup, STALL_COLLECTION);
 
 	}
 	
-	public void getStallByUUID(String uuid){
-		Stall stall = null;
+	public Banker getBankerData(String serviceName) {
+		Banker bankerData = null;
 		try {
-			stall = config.mongoTemplate().findOne(
-					new Query(Criteria.where("UUID").is(uuid)),
-					Stall.class, STALL_COLLECTION);
-			System.out.println("Stall " + stall);
-			stall.setImageBytes(readStallOwnerImage(stall.getStallOwner()));			
+			bankerData = config.mongoTemplate().findOne(
+					new Query(Criteria.where("serviceName").is(serviceName)),
+					Banker.class, BANKERSETUP_COLLECTION);
+			System.out.println("Banker Data " + bankerData);
+
+			bankerData.setImageBytes(readBankerImage(serviceName));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return bankerData;
 	}
 	
-	private byte[] readStallOwnerImage(String stallOwner) throws Exception {
+	private byte[] readBankerImage(String serviceName) throws Exception {
 		GridFS fileStore = new GridFS(config.mongoTemplate().getDb(),
 				"filestore");
-		GridFSDBFile gridFile = fileStore.findOne(stallOwner + "-image");
+		GridFSDBFile gridFile = fileStore.findOne("B1-" + serviceName  + "-image");
 
 		InputStream in = gridFile.getInputStream();
 
@@ -229,5 +236,6 @@ public class BeaconDAO {
 		out.close();
 		return out.toByteArray();
 	}
+	
 	
 }
